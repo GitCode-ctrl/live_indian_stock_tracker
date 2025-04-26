@@ -25,7 +25,7 @@ refresh_rate = st.slider("⏱ Refresh every (seconds)", 10, 300, 60)
 
 # Auto-refresh using Streamlit's native method
 st.experimental_rerun() if st.experimental_get_query_params().get("auto_refresh") else None
-st.experimental_set_query_params(auto_refresh="1")
+st.query_params.st.experimental_set_query_params (auto_refresh="1")
 
 # Fetch function
 def fetch_prices():
