@@ -1,12 +1,13 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import time
 
-# Set up the Streamlit page
-st.set_page_config(page_title="Live Indian Stock Tracker", layout="centered")
-st.title("📈 Real-Time Price Tracker: Top 10 Indian Stocks")
+# Set up page
+st.set_page_config(page_title="Top 10 Indian Stocks", layout="centered")
+st.title("📈 Live Price Tracker: Top 10 Indian Stocks")
 
-# Define stock symbols
+# Stock list
 top_10_stocks = {
     'RELIANCE': 'RELIANCE.NS',
     'TCS': 'TCS.NS',
@@ -20,35 +21,36 @@ top_10_stocks = {
     'ITC': 'ITC.NS'
 }
 
-# Refresh time selector
-refresh_rate = st.slider("⏱ Refresh every (seconds)", 10, 300, 60)
-
-# Auto-refresh using Streamlit's native method
-st.experimental_rerun() if st.experimental_get_query_params().get("auto_refresh") else None
-st.query_params.st.experimental_set_query_params (auto_refresh="1")
-
-# Fetch function
+# Function to get prices
 def fetch_prices():
     data = []
     for name, symbol in top_10_stocks.items():
-        stock = yf.Ticker(symbol)
-        price = stock.info.get('regularMarketPrice', "N/A")
+        try:
+            stock = yf.Ticker(symbol)
+            price = stock.info.get('regularMarketPrice', 'N/A')
+        except:
+            price = 'N/A'
         data.append({'Stock': name, 'Price (INR)': price})
     return pd.DataFrame(data)
 
-# Display data
-df = fetch_prices()
-st.table(df)
+# Slider to control refresh interval
+refresh_interval = st.slider("🔁 Refresh every (seconds)", 10, 300, 60)
 
-# Show current time
-st.caption(f"Last updated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
+# Button to manually refresh
+if st.button("🔄 Refresh Now"):
+    df = fetch_prices()
+    st.table(df)
+    st.caption(f"Last updated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
+else:
+    df = fetch_prices()
+    st.table(df)
+    st.caption(f"Auto-refreshed at: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-# Auto-refresh using JS workaround
+# Auto-refresh using HTML/JS
 st.markdown(f"""
     <script>
-        function refresh() {{
+        setTimeout(function(){{
             window.location.reload();
-        }}
-        setTimeout(refresh, {refresh_rate * 1000});
+        }}, {refresh_interval * 1000});
     </script>
 """, unsafe_allow_html=True)
